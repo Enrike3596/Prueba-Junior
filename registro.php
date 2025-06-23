@@ -6,7 +6,7 @@ include("conexion.php"); // Incluir el archivo de conexión a la base de datos
 
 try {
     $a = $conexion->prepare("SELECT * FROM Mr_Disfraz"); // Preparar la consulta SQL para seleccionar todos los registros
-    // Puedes agregar un ORDER BY si deseas ordenar los resultados, por ejemplo:
+    
     $a->execute();
     $registros = $a->fetchAll(PDO::FETCH_ASSOC); // Obtener todos los registros de la tabla
     }

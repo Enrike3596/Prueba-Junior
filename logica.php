@@ -1,37 +1,51 @@
 <?php
-
-// Obtener datos del formulario
-
 $nombre = $_POST["nombre"] ?? "";
 $edad   = $_POST["edad"] ?? "";
 $email  = $_POST["email"] ?? "";
 
+function mostrarAlerta($tipo, $titulo, $mensaje, $url) {
+    echo "
+    <!DOCTYPE html>
+    <html lang='es'>
+    <head>
+        <meta charset='UTF-8'>
+        <title>Alerta</title>
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    </head>
+    <body>
+        <script>
+            Swal.fire({
+                icon: '$tipo',
+                title: '$titulo',
+                text: '$mensaje',
+                confirmButtonText: 'Continuar'
+            }).then(() => {
+                window.location.href = '$url';
+            });
+        </script>
+    </body>
+    </html>";
+    exit;
+}
+
 // Validar edad
 if ($edad < 18) {
-    echo "<h2>No cumples con la edad  para el registro.</h2>";
-    echo "<a href='index.html' class='btn btn-outline btn-primary'>Volver al Inicio</a>";
-    exit;
-} else {
-    echo "Gracias por registrarse";
+    mostrarAlerta('error', 'Edad no permitida', 'Debes tener al menos 18 años para registrarte.', 'index.html');
 }
-echo "<br>";
 
-// Conexión y guardado en la base de datos
 try {
-    // Establecer conexión con la base de datos
     include("conexion.php");
 
-    // Preparar la consulta SQL
-    $stmt = $conexion->prepare(
-        "INSERT INTO Mr_Disfraz (Nombre, Edad, Correo_Electronico) VALUES (?, ?, ?)"
-    );
-
-    // Ejecutar la consulta con los datos del formulario
+    $stmt = $conexion->prepare("INSERT INTO Mr_Disfraz (Nombre, Edad, Correo_Electronico) VALUES (?, ?, ?)");
     $stmt->execute([$nombre, $edad, $email]);
 
-    header("Location: registro.php"); // Redireccionar a la página de registros
-    exit;
+    mostrarAlerta('success', 'Registro exitoso', "¡Bienvenido $nombre!", 'registro.php');
+
 } catch (PDOException $e) {
-    echo "Error al guardar en la base de datos: " . $e->getMessage();
+    if ($e->getCode() == 23000) {
+        mostrarAlerta('warning', 'Correo duplicado', 'El correo ya está registrado.', 'index.html');
+    } else {
+        mostrarAlerta('error', 'Error de servidor', 'No se pudo completar el registro.', 'index.html');
+    }
 }
 ?>
